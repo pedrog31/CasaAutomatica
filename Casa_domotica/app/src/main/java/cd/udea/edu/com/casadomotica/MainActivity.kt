@@ -17,6 +17,7 @@ import java.util.*
 import com.google.firebase.auth.FirebaseAuth
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.DialogInterface
 import com.firebase.ui.auth.IdpResponse
 import android.widget.EditText
@@ -27,6 +28,8 @@ import com.budiyev.android.codescanner.DecodeCallback
 import com.budiyev.android.codescanner.ErrorCallback
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.android.synthetic.main.add_time.view.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -85,6 +88,7 @@ class MainActivity : AppCompatActivity() {
                         .setTitle("Escanea el codigo QR del dispositivo")
                         .setPositiveButton("Cancelar", object : DialogInterface.OnClickListener {
                             override fun onClick(dialog: DialogInterface?, which: Int) {
+
                             }
 
                         })
@@ -109,18 +113,14 @@ class MainActivity : AppCompatActivity() {
                                             .child(FirebaseAuth.getInstance().uid)
                                             .child("Dispositivos")
                                             .child(id)
+                                            .child("Nombre")
                                             .setValue(mEditText.text.toString())
-                                    FirebaseDatabase
-                                            .getInstance()
-                                            .reference
-                                            .child("Dispositivos")
-                                            .child(id)
-                                            .child(FirebaseAuth.getInstance().uid)
-                                            .setValue(true)
-                                    getSharedPreferences("house", MODE_PRIVATE)
-                                            .edit()
-                                            .putString(id,mEditText.text.toString())
-                                            .apply()
+                                    FirebaseMessaging.getInstance().subscribeToTopic(id)
+                                    val sharedPref = getSharedPreferences("Casa_domotica", Context.MODE_PRIVATE)
+                                    with(sharedPref.edit()) {
+                                        putString(id, mEditText.text.toString())
+                                        apply()
+                                    }
                                 }
                                 .setNegativeButton("Cancelar") { _, _ ->
                                     FirebaseDatabase
@@ -177,7 +177,6 @@ class MainActivity : AppCompatActivity() {
                 fab.setOnClickListener { view ->
                     addDispositivo()
                 }
-                FirebaseDatabase.getInstance().reference.child("Token").child(FirebaseAuth.getInstance().uid).setValue(FirebaseInstanceId.getInstance().token)
                 Toast.makeText(this@MainActivity, "Sesion iniciada correctamente", Toast.LENGTH_LONG).show()
             } else {
                 // Sign in failed, check response for error code

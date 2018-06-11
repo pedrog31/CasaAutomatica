@@ -1,5 +1,6 @@
 package cd.udea.edu.com.casadomotica.adapter
 
+import android.content.Context
 import android.content.Intent
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -33,9 +34,23 @@ class DispoAdapter(private var dispositivos: MutableList<Dispositivo>,
     inner class GroupViewHolder(groupView: View) : RecyclerView.ViewHolder(groupView) {
         fun bindSpace(dispositivo: Dispositivo) {
             itemView.app_compat_dispo_list_textView_title.text = dispositivo.nombre
-            itemView.app_compat_dispo_list_textView_description.text = if (dispositivo.id[0].equals('B')) "Bebedero" else "Comedero"
+            itemView.app_compat_dispo_list_textView_descripcion.text = when (dispositivo.id[0]) {
+                'C' -> "Comedero"
+                'B' -> "Bebedero"
+                else -> ""
+            }
+            val sharedPref = dispositivosFragment.activity?.getSharedPreferences("Casa_domotica", Context.MODE_PRIVATE)
+            val tanque = sharedPref?.getString(dispositivo.id.plus("T"), null)
+            if (tanque != null)
+                itemView.app_compat_dispo_list_textView_tanque.text = "Tanque \n $tanque %"
+            val coca = sharedPref?.getString(dispositivo.id.plus("C"), null)
+            if (coca != null)
+                itemView.app_compat_dispo_list_textView_coca.text = "Coca \n $coca %"
+            if (dispositivo.id[0].equals('C'))
             itemView.app_compat_dispo_list_cardView_group.setOnClickListener {
-                dispositivosFragment.startActivity(Intent(dispositivosFragment.context, DispoActivity::class.java))
+                val mIntent = Intent(dispositivosFragment.context, DispoActivity::class.java)
+                mIntent.putExtra("ID", dispositivo.id)
+                dispositivosFragment.startActivity(mIntent)
             }
         }
      }
